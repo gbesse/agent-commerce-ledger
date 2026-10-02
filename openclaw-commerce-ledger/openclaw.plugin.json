@@ -1,0 +1,20 @@
+{
+  "id": "commerce-ledger",
+  "name": "Commerce Ledger",
+  "description": "FR : reçus sans contenu des messages ; EN: receipts without message content; ES: recibos sin contenido de mensajes",
+  "categories": ["sales-marketing"],
+  "skills": ["./skills"],
+  "activation": { "onStartup": true },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dataDir": { "type": "string" },
+      "allowedChannels": { "type": "array", "items": { "type": "string" } },
+      "allowedSenders": { "type": "array", "items": { "type": "string" } },
+      "captureOutbound": { "type": "boolean" },
+      "protectedTools": { "type": "array", "items": { "type": "string" } },
+      "locale": { "type": "string", "enum": ["fr", "en", "es"] }
+    }
+  }
+}

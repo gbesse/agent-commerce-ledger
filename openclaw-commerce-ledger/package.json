@@ -1,0 +1,25 @@
+{
+  "name": "@gbesse/openclaw-commerce-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "FR : journal de reçus commerciaux ; EN: commerce receipt ledger; ES: registro de recibos comerciales",
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.9.4"
+  },
+  "files": [
+    "index.js",
+    "runtime.js",
+    "skills",
+    "ledger.js",
+    "openclaw.plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT"
+}

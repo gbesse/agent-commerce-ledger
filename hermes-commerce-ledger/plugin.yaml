@@ -1,0 +1,29 @@
+name: commerce-ledger
+version: 0.1.0
+description: 'FR : reçus entrants sans contenu ; EN: inbound receipts without content; ES: recibos entrantes sin contenido'
+provides_hooks:
+  - pre_gateway_dispatch
+  - pre_tool_call
+  - post_approval_response
+  - post_tool_call
+config_schema:
+  allowed_platforms:
+    type: list
+    default: []
+    description: 'FR : plateformes autorisées ; EN: allowed platforms; ES: plataformas permitidas'
+  allowed_senders:
+    type: list
+    default: []
+    description: 'FR : expéditeurs autorisés ; EN: allowed senders; ES: remitentes permitidos'
+  data_dir:
+    type: str
+    default: ''
+    description: 'FR : dossier des reçus ; EN: receipt directory; ES: directorio de recibos'
+  protected_tools:
+    type: list
+    default: []
+    description: 'FR : outils soumis à validation ; EN: tools requiring approval; ES: herramientas sujetas a aprobación'
+  locale:
+    type: str
+    default: fr
+    description: 'FR : langue des validations ; EN: approval language; ES: idioma de aprobación'
