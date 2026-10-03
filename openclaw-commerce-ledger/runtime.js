@@ -1,6 +1,7 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { recordApproval, recordReceipt } from './ledger.js';
+import { observeBusinessEvent, validateBusinessProofs } from './business-proof.js';
 
 const approvalCopy = {
   fr: ['Autoriser une action métier', 'Valider cet appel de {tool} avec ses paramètres exacts ?'],
@@ -57,6 +58,7 @@ export function registerCommerceHooks(api) {
     api.on('message_sent', (event, ctx) => observe('outbound', event, ctx));
   }
   const protectedTools = new Set(config.protectedTools ?? []);
+  const businessProofs = validateBusinessProofs(config.businessProofs, protectedTools);
   const [title, description] = approvalCopy[config.locale] ?? approvalCopy.fr;
   const errors = approvalErrors[config.locale] ?? approvalErrors.fr;
   if (protectedTools.size > 0) {
@@ -108,16 +110,24 @@ export function registerCommerceHooks(api) {
       };
     });
     api.on('after_tool_call', async (event) => {
-      if (!protectedTools.has(event.toolName) || !event.toolCallId) return;
-      try {
-        await recordApproval(directory, {
-          tool: event.toolName,
-          callId: event.toolCallId,
-          params: event.params,
-          status: event.error ? 'error' : 'returned',
-        });
-      } catch (error) {
-        api.logger?.warn?.(`commerce-ledger:E_RESULT_WRITE (${error.code ?? 'error'})`);
+      if (protectedTools.has(event.toolName) && event.toolCallId) {
+        try {
+          await recordApproval(directory, {
+            tool: event.toolName,
+            callId: event.toolCallId,
+            params: event.params,
+            status: event.error ? 'error' : 'returned',
+          });
+        } catch (error) {
+          api.logger?.warn?.(`commerce-ledger:E_RESULT_WRITE (${error.code ?? 'error'})`);
+        }
+      }
+      if (businessProofs.length > 0) {
+        try {
+          await observeBusinessEvent(directory, businessProofs, event);
+        } catch (error) {
+          api.logger?.warn?.(`commerce-ledger:E_PROOF_WRITE (${error.code ?? 'error'})`);
+        }
       }
     });
   }

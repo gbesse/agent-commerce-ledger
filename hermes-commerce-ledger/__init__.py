@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from .ledger import record_approval, record_receipt
+from .business_proof import observe_result, validate_rules
 
 APPROVAL_COPY = {
     "fr": "Valider cet appel de {tool} avec ses paramètres exacts ?",
@@ -27,6 +28,7 @@ def register(ctx):
     allowed_senders = {str(item) for item in (ctx.get_config("allowed_senders", default=[]) or [])}
     data_dir = ctx.get_config("data_dir", default="")
     protected_tools = set(ctx.get_config("protected_tools", default=[]) or [])
+    business_proofs = validate_rules(ctx.get_config("business_proofs", default=[]), protected_tools)
     locale = ctx.get_config("locale", default="fr")
     errors = ERROR_COPY.get(locale, ERROR_COPY["fr"])
     pending = {}
@@ -92,15 +94,19 @@ def register(ctx):
             pending.pop(tool_call_id, None)
         return None
 
-    def observed_result(tool_name, args, tool_call_id=None, **_kwargs):
+    def observed_result(tool_name, args, tool_call_id=None, result=None, error=None, **_kwargs):
         item = pending.pop(tool_call_id, None)
-        if item is None or item[0] != tool_name:
-            return None
-        try:
-            status = "returned" if json.dumps(args, sort_keys=True) == json.dumps(item[1], sort_keys=True) else "args-changed"
-            record_approval(data_dir, tool_name, tool_call_id, args, status)
-        except (OSError, ValueError, TypeError) as error:
-            logger.warning("commerce-ledger:E_RESULT_WRITE (%s)", error.__class__.__name__)
+        if item is not None and item[0] == tool_name:
+            try:
+                status = "returned" if json.dumps(args, sort_keys=True) == json.dumps(item[1], sort_keys=True) else "args-changed"
+                record_approval(data_dir, tool_name, tool_call_id, args, status)
+            except (OSError, ValueError, TypeError) as failure:
+                logger.warning("commerce-ledger:E_RESULT_WRITE (%s)", failure.__class__.__name__)
+        if business_proofs:
+            try:
+                observe_result(data_dir, business_proofs, tool_name, args, tool_call_id, result, error)
+            except (OSError, ValueError, TypeError, KeyError) as failure:
+                logger.warning("commerce-ledger:E_PROOF_WRITE (%s)", failure.__class__.__name__)
         return None
 
     ctx.register_hook("pre_tool_call", require_approval)

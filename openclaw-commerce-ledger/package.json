@@ -17,6 +17,7 @@
     "runtime.js",
     "skills",
     "ledger.js",
+    "business-proof.js",
     "openclaw.plugin.json",
     "README.md",
     "LICENSE"

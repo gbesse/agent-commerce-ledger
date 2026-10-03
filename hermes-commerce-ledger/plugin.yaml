@@ -23,6 +23,10 @@ config_schema:
     type: list
     default: []
     description: 'FR : outils soumis à validation ; EN: tools requiring approval; ES: herramientas sujetas a aprobación'
+  business_proofs:
+    type: list
+    default: []
+    description: 'FR : règles de relecture métier ; EN: business readback rules; ES: reglas de relectura empresarial'
   locale:
     type: str
     default: fr

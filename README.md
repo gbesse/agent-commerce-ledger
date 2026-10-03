@@ -8,6 +8,8 @@ Chaque extension embarque la compétence `commerce-workflow` en français, angla
 
 Les deux extensions peuvent demander une approbation avant les outils listés dans `protectedTools` ou `protected_tools`. Le dossier `approvals/` conserve des empreintes des paramètres et les décisions observées, sans les paramètres en clair. Un identifiant d'appel absent ou un échec d'écriture bloque la demande. La décision ne prouve pas l'exécution ; la couverture MCP dépend des hooks émis par l'hôte.
 
+Les règles optionnelles `businessProofs` (OpenClaw) et `business_proofs` (Hermes) rapprochent une écriture approuvée pour une seule fois d'une lecture indépendante du même objet et de ses champs. Les reçus `business/` indiquent `verified`, `mismatch` ou `unavailable`, sans identifiant métier ni valeur en clair. La lecture doit être effectuée séparément ; une écriture observée seule ne constitue pas une preuve de résultat durable. Voir les README de chaque extension pour les paramètres.
+
 Le dossier contient un secret local (`secret`) et un fichier JSON par reçu (`events/`). Les fichiers sont créés avec les permissions `600`, les dossiers avec `700`. Ne configurez que les plateformes et expéditeurs autorisés. Le hook Hermes intervient avant l'autorisation du gateway : sa liste d'expéditeurs doit donc rester au moins aussi restrictive que celle du gateway.
 
 Les empreintes de deux dossiers différents ne sont pas comparables, car chaque dossier possède son propre secret. Pour réunir les reçus des deux plugins sur la même machine, configurer `dataDir` et `data_dir` vers le même dossier, accessible uniquement aux comptes système concernés.
@@ -57,6 +59,8 @@ Each extension bundles the `commerce-workflow` skill in French, English, and Spa
 
 Both extensions can request approval before tools listed in `protectedTools` or `protected_tools`. The `approvals/` directory stores hashes of parameters and observed decisions, without plaintext arguments. A missing call ID or write failure blocks the request. A decision does not prove execution; MCP coverage depends on the host hooks actually fired.
 
+Optional `businessProofs` (OpenClaw) and `business_proofs` (Hermes) rules correlate a one-time approved write with an independent read of the same object and fields. Receipts in `business/` report `verified`, `mismatch`, or `unavailable` without plaintext business IDs or values. The read must happen separately; an observed write alone is not proof of a durable business result. See each extension's README for configuration.
+
 The data directory contains a local secret (`secret`) and one JSON file per receipt (`events/`). Files are created with `600` permissions and directories with `700`. Configure only authorized platforms and senders. The Hermes hook runs before gateway authorization, so its sender allowlist must be at least as restrictive as the gateway's.
 
 References from different data directories cannot be compared because each directory has its own secret. To combine both plugins' receipts on one machine, point `dataDir` and `data_dir` at the same directory, accessible only to the relevant system accounts.
@@ -86,6 +90,8 @@ Dos plugins nativos registran identificadores permitidos de mensajes comerciales
 Cada extensión incluye la habilidad `commerce-workflow` en francés, inglés y español. Guía la búsqueda de contactos en incwo, la preparación de seguimientos y la aprobación humana antes de escribir o enviar, si las herramientas necesarias ya están conectadas.
 
 Ambas extensiones pueden solicitar aprobación antes de las herramientas de `protectedTools` o `protected_tools`. El directorio `approvals/` guarda huellas de los parámetros y las decisiones observadas, sin argumentos en claro. Si falta el ID de la llamada o falla la escritura, se bloquea la solicitud. Una decisión no demuestra la ejecución; la cobertura de MCP depende de los hooks emitidos por el host.
+
+Las reglas opcionales `businessProofs` (OpenClaw) y `business_proofs` (Hermes) relacionan una escritura aprobada para una sola vez con una lectura independiente del mismo objeto y sus campos. Los recibos de `business/` muestran `verified`, `mismatch` o `unavailable` sin ID ni valores empresariales en claro. La lectura debe realizarse por separado; observar la escritura no demuestra por sí solo un resultado duradero. Consulta la configuración en el README de cada extensión.
 
 El directorio de datos contiene un secreto local (`secret`) y un archivo JSON por recibo (`events/`). Los archivos se crean con permisos `600` y los directorios con `700`. Configura solo plataformas y remitentes autorizados. El hook de Hermes se ejecuta antes de la autorización del gateway; su lista de remitentes debe ser al menos tan restrictiva como la del gateway.
 

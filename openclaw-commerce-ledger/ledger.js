@@ -35,6 +35,23 @@ async function secretFor(directory) {
   return secret;
 }
 
+export async function digestFor(directory, ...parts) {
+  const secret = await secretFor(directory);
+  return createHmac('sha256', secret).update(JSON.stringify(parts)).digest('hex');
+}
+
+export async function hasAllowOnceApproval(directory, { tool, callId, params }) {
+  const argsRef = await digestFor(directory, 'args', tool, params ?? {});
+  const id = await digestFor(directory, 'approval', tool, callId, argsRef, 'allow-once');
+  try {
+    await readFile(join(directory, 'approvals', `${id}.json`));
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
 export async function recordApproval(directory, input) {
   const tool = clean(input.tool);
   const callId = clean(input.callId);

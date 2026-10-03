@@ -14,6 +14,7 @@
       "allowedSenders": { "type": "array", "items": { "type": "string" } },
       "captureOutbound": { "type": "boolean" },
       "protectedTools": { "type": "array", "items": { "type": "string" } },
+      "businessProofs": { "type": "array", "items": { "type": "object" } },
       "locale": { "type": "string", "enum": ["fr", "en", "es"] }
     }
   }

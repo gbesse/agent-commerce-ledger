@@ -152,3 +152,41 @@ test('OpenClaw approval binds a decision to the exact tool arguments', async () 
     true,
   );
 });
+
+test('OpenClaw business proof requires approval and matching independent readback', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'commerce-proof-'));
+  const hooks = new Map();
+  registerCommerceHooks({
+    pluginConfig: {
+      dataDir: directory,
+      protectedTools: ['incwo.create_invoice'],
+      businessProofs: [{
+        writeTool: 'incwo.create_invoice', readTool: 'incwo.get_object', resource: 'invoice',
+        fields: [{ writePath: 'amount', readPath: 'amount' }],
+      }],
+    },
+    on(name, callback) { hooks.set(name, callback); },
+  });
+  const write = { toolName: 'incwo.create_invoice', toolCallId: 'write-1', params: { amount: 42 } };
+  await hooks.get('after_tool_call')({ ...write, result: { id: 'invoice-1', amount: 42 } });
+  assert.equal((await readdir(join(directory, 'approvals'))).length, 1);
+  const approval = await hooks.get('before_tool_call')(write);
+  await approval.requireApproval.onResolution('allow-once');
+  await hooks.get('after_tool_call')({ ...write, result: { id: 'invoice-1', amount: 42 } });
+  const actions = await readdir(join(directory, 'business', 'actions'));
+  assert.equal(actions.length, 1);
+  const read = { toolName: 'incwo.get_object', params: { object_type: 'invoice', id: 'invoice-1' } };
+  await hooks.get('after_tool_call')({ ...read, toolCallId: 'read-1', result: { id: 'invoice-1', amount: 43 } });
+  await hooks.get('after_tool_call')({ ...read, toolCallId: 'read-2', result: { id: 'invoice-1', amount: 42 } });
+  await hooks.get('after_tool_call')({ ...read, toolCallId: 'read-3', error: 'timeout' });
+  const readbacks = await readdir(join(directory, 'business', 'readbacks'));
+  const statuses = await Promise.all(readbacks.map(async (file) =>
+    JSON.parse(await readFile(join(directory, 'business', 'readbacks', file), 'utf8')).status));
+  assert.deepEqual(statuses.sort(), ['mismatch', 'unavailable', 'verified']);
+  const evidence = await Promise.all([
+    ...actions.map((file) => join(directory, 'business', 'actions', file)),
+    ...readbacks.map((file) => join(directory, 'business', 'readbacks', file)),
+  ].map((file) => readFile(file, 'utf8')));
+  assert.equal(evidence.join('').includes('invoice-1'), false);
+  assert.equal((await stat(join(directory, 'business', 'actions', actions[0]))).mode & 0o777, 0o600);
+});

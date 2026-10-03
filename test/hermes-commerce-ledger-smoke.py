@@ -83,3 +83,19 @@ assert len({json.loads(path.read_text())["argsRef"] for path in approval_files})
 assert all("PRIVATE CUSTOMER" not in path.read_text() for path in approval_files)
 assert {json.loads(path.read_text())["status"] for path in approval_files} == {"requested", "once", "returned"}
 print(json.dumps({"duplicate": duplicate, "files": len(list((directory / "events").glob("*.json")))}))
+
+proof_rules = module.validate_rules([{
+    "write_tool": "incwo.create_invoice", "read_tool": "incwo.get_object", "resource": "invoice",
+    "fields": [{"write_path": "amount", "read_path": "amount"}],
+}], {"incwo.create_invoice"})
+write = {"amount": 42}
+module.record_approval(directory, "incwo.create_invoice", "proof-write", write, "once")
+module.observe_result(directory, proof_rules, "incwo.create_invoice", write, "proof-write",
+                      {"id": "invoice-2", "amount": 42})
+module.observe_result(directory, proof_rules, "incwo.get_object",
+                      {"object_type": "invoice", "id": "invoice-2"}, "proof-read",
+                      {"id": "invoice-2", "amount": 42})
+readbacks = list((directory / "business" / "readbacks").glob("*.json"))
+assert len(readbacks) == 1
+assert json.loads(readbacks[0].read_text())["status"] == "verified"
+assert "invoice-2" not in readbacks[0].read_text()
